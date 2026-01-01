@@ -1,1 +1,383 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <link rel="icon" type="image/png" href="img/favicon.png?v=2">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>✨ FELIZ AÑO 💖</title>
 
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  background: radial-gradient(circle at top, #0b1025, #000);
+  overflow: hidden;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+canvas {
+  position: fixed;
+  inset: 0;
+}
+
+/* ================= BOTÓN ================= */
+#inicio {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column; 
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+#inicio button {
+  padding: 18px 36px;
+  font-size: 1.3em;
+  border: none;
+  border-radius: 40px;
+  background: linear-gradient(135deg, #7c3aed, #38bdf8);
+  color: white;
+  box-shadow: 0 0 40px rgba(56,189,248,0.8);
+  cursor: pointer;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.07); }
+  100% { transform: scale(1); }
+}
+
+.leyenda {
+  margin-top: 22px;
+  font-size: 1em;
+  color: #e195f6;
+  text-shadow: 0 0 6px #f591f5, 0 0 14px rgba(144, 214, 245, 0.9);
+  letter-spacing: 0.6px;
+  animation: aparecer 2.5s ease;
+}
+
+@keyframes aparecer {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ================= CARTA ================= */
+#mensaje {
+  position: absolute;
+  top: 20%;
+  width: 100%;
+  text-align: center;
+  display: none;
+  z-index: 5;
+}
+
+/* Canvas de fuegos ARTIFICIALES detrás de la carta */
+#fuegos {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4; /* menor que la carta */
+}
+
+#mensaje .card {
+  display: inline-block;
+  padding: 32px 42px;
+  border-radius: 26px;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(8px);
+  box-shadow:
+    0 0 45px rgba(56,189,248,0.35),
+    inset 0 0 25px rgba(255,255,255,0.05);
+  color: #f8fafc;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+#mensaje h1 {
+  color: #fde047;
+  text-shadow: 0 0 18px rgba(253,224,71,0.9);
+}
+
+#mensaje p {
+  color: #e5e7eb;
+}
+</style>
+</head>
+
+<body>
+
+<div id="inicio">
+  <button onclick="abrirCarta()">💖 Con cariño 💖</button>
+  <span class="leyenda">✨ Tócalo cuando tu corazón esté listo ✨</span>
+</div>
+
+<div id="mensaje">
+  <div class="card">
+    <h1>✨ Felices Fiestas ✨</h1>
+    <p>
+      Querida <br>
+      Amiga<br>
+   <p>
+      Espero que estés muy bien. Ha pasado bastante tiempo desde la última vez
+      que hablamos y, aunque la vida a veces nos lleva por caminos distintos,
+      quise aprovechar este nuevo año para escribirte.
+    </p>
+
+    <p>
+      Reconozco que por distintos motivos dejé de hablarte, y no quiero que este
+      mensaje sea incómodo, solo sincero. A pesar del tiempo y la distancia,
+      guardo un buen recuerdo de ti y de los momentos que compartimos.
+    </p>
+
+    <p>
+      Te deseo de corazón un muy feliz año nuevo, lleno de tranquilidad,
+      alegrías, salud y nuevas oportunidades. Ojalá este año te regale razones
+      para sonreír y cumplir aquello que te propongas.
+    </p>
+
+    <p>
+      Si en algún momento coincidimos de nuevo, será agradable saber de ti.
+      Te deseo siempre lo mejor. Que la vida marque el ritmo; te deseo cosas
+      buenas en cada etapa.
+    </p>
+        Con cariño,<br>
+        Hyogan 💫
+    </p>
+  </div>
+</div>
+
+<canvas id="petalos"></canvas>
+<canvas id="nieve"></canvas>
+<canvas id="estrellas"></canvas>
+<canvas id="fuegos"></canvas>
+
+<script>
+const W = () => innerWidth;
+const H = () => innerHeight;
+
+/* ================== CANVAS ================== */
+const petalos = document.getElementById("petalos");
+const nieve = document.getElementById("nieve");
+const estrellas = document.getElementById("estrellas");
+const fuegos = document.getElementById("fuegos");
+
+[petalos, nieve, estrellas, fuegos].forEach(c=>{
+  c.width = W();
+  c.height = H();
+});
+
+addEventListener("resize", () => {
+  [petalos, nieve, estrellas, fuegos].forEach(c=>{
+    c.width = W();
+    c.height = H();
+  });
+});
+
+/* ================== PÉTALOS (CORAZÓN) ================== */
+const cp = petalos.getContext("2d");
+
+let corazones = Array.from({length:90}, () => ({
+  x: Math.random()*W(),
+  y: Math.random()*H(),
+  s: Math.random()*6 + 6,
+  v: Math.random()*0.45 + 0.35,
+  d: Math.random()*0.6 - 0.3,
+  r: Math.random()*Math.PI
+}));
+
+function corazon(ctx, s){
+  ctx.beginPath();
+  ctx.moveTo(0, s/4);
+  ctx.bezierCurveTo(-s, -s/2, -s, s, 0, s*1.3);
+  ctx.bezierCurveTo(s, s, s, -s/2, 0, s/4);
+  ctx.closePath();
+}
+
+function animPetalos(){
+  cp.clearRect(0,0,W(),H());
+  corazones.forEach(p=>{
+    p.y += p.v;
+    p.x += p.d;
+    p.r += 0.01;
+    if(p.y > H()) p.y = -30;
+
+    cp.save();
+    cp.translate(p.x,p.y);
+    cp.rotate(p.r);
+    corazon(cp,p.s);
+    cp.fillStyle = "rgba(255,160,190,0.9)";
+    cp.shadowBlur = 15;
+    cp.shadowColor = "rgba(255,120,170,0.9)";
+    cp.fill();
+    cp.restore();
+  });
+  requestAnimationFrame(animPetalos);
+}
+animPetalos();
+
+/* ================== COPOS DE NIEVE ================== */
+const cn = nieve.getContext("2d");
+
+let copos = Array.from({length:70}, () => ({
+  x: Math.random()*W(),
+  y: Math.random()*H(),
+  s: 8,
+  v: Math.random()*0.4 + 0.35,
+  d: Math.random()*0.4 - 0.2,
+  r: Math.random()*Math.PI
+}));
+
+function copoReal(ctx, s){
+  for(let i=0;i<6;i++){
+    ctx.rotate(Math.PI/3);
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.lineTo(0,s);
+
+    ctx.moveTo(0,s*0.4);
+    ctx.lineTo(s*0.2, s*0.55);
+    ctx.moveTo(0,s*0.4);
+    ctx.lineTo(-s*0.2, s*0.55);
+
+    ctx.moveTo(0,s*0.7);
+    ctx.lineTo(s*0.25, s*0.9);
+    ctx.moveTo(0,s*0.7);
+    ctx.lineTo(-s*0.25, s*0.9);
+
+    ctx.stroke();
+  }
+}
+
+function animNieve(){
+  cn.clearRect(0,0,W(),H());
+  copos.forEach(c=>{
+    c.y += c.v;
+    c.x += c.d;
+    c.r += 0.01;
+    if(c.y > H()) c.y = -20;
+
+    cn.save();
+    cn.translate(c.x,c.y);
+    cn.rotate(c.r);
+    cn.strokeStyle="rgba(140,210,255,0.95)";
+    cn.lineWidth=1.3;
+    cn.shadowBlur=12;
+    cn.shadowColor="rgba(140,210,255,0.9)";
+    copoReal(cn,c.s);
+    cn.restore();
+  });
+  requestAnimationFrame(animNieve);
+}
+animNieve();
+
+/* ================== ESTRELLAS ================== */
+const ce = estrellas.getContext("2d");
+
+let stars = Array.from({length:45},() => ({
+  x:Math.random()*W(),
+  y:Math.random()*H(),
+  s:6,
+  v:Math.random()*0.45 + 0.35,
+  d:Math.random()*0.3 - 0.15,
+  r:Math.random()*Math.PI
+}));
+
+function estrella(ctx,s){
+  ctx.beginPath();
+  for(let i=0;i<5;i++){
+    ctx.lineTo(Math.cos((18+i*72)*Math.PI/180)*s,
+               -Math.sin((18+i*72)*Math.PI/180)*s);
+    ctx.lineTo(Math.cos((54+i*72)*Math.PI/180)*(s/2),
+               -Math.sin((54+i*72)*Math.PI/180)*(s/2));
+  }
+  ctx.closePath();
+}
+
+function animStars(){
+  ce.clearRect(0,0,W(),H());
+  stars.forEach(st=>{
+    st.y += st.v;
+    st.x += st.d;
+    st.r += 0.01;
+    if(st.y > H()) st.y = -20;
+
+    ce.save();
+    ce.translate(st.x,st.y);
+    ce.rotate(st.r);
+    estrella(ce,st.s);
+    ce.fillStyle="rgba(255,220,120,0.95)";
+    ce.shadowBlur=15;
+    ce.shadowColor="rgba(255,200,80,0.9)";
+    ce.fill();
+    ce.restore();
+  });
+  requestAnimationFrame(animStars);
+}
+animStars();
+
+/* ================== FUEGOS ARTIFICIALES ================== */
+const cf = fuegos.getContext("2d");
+let particulas = [];
+let fuegosActivo = false;
+
+function crearFuego(x,y){
+  const colores = ["#ff6ec7","#fde047","#38bdf8","#fb7185","#c084fc"];
+  for(let i=0;i<80;i++){
+    particulas.push({
+      x, y,
+      vx: Math.cos((Math.PI*2*i)/80)*(Math.random()*4+2),
+      vy: Math.sin((Math.PI*2*i)/80)*(Math.random()*4+2),
+      alpha:1,
+      color: colores[Math.floor(Math.random()*colores.length)]
+    });
+  }
+}
+
+function animFuegos(){
+  if(fuegosActivo){
+    cf.fillStyle="rgba(0,0,0,0.05)"; // menos opaco para no tapar la carta
+    cf.fillRect(0,0,fuegos.width,fuegos.height);
+
+    particulas.forEach((p,i)=>{
+      p.x+=p.vx;
+      p.y+=p.vy;
+      p.vy+=0.02;
+      p.alpha-=0.015;
+
+      cf.beginPath();
+      cf.arc(p.x,p.y,2,0,Math.PI*2);
+      cf.fillStyle=`rgba(${hexToRgb(p.color)},${p.alpha})`;
+      cf.fill();
+
+      if(p.alpha<=0) particulas.splice(i,1);
+    });
+  }
+  requestAnimationFrame(animFuegos);
+}
+animFuegos();
+
+function hexToRgb(hex){
+  const bigint = parseInt(hex.slice(1),16);
+  return `${(bigint>>16)&255},${(bigint>>8)&255},${bigint&255}`;
+}
+
+/* ================== BOTÓN ================== */
+function abrirCarta(){
+  document.getElementById("inicio").style.display="none";
+  document.getElementById("mensaje").style.display="block";
+
+  fuegosActivo = true;
+  crearFuego(innerWidth/2, innerHeight/2);
+
+  let intervalo = setInterval(()=>{
+    crearFuego(Math.random()*innerWidth, Math.random()*innerHeight/2);
+  },700);
+
+  setTimeout(()=>clearInterval(intervalo),5000);
+}
+
+</script>
+
+</body>
+</html>
